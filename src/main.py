@@ -1,5 +1,5 @@
 from src.infix_to_postfix import infix_to_postfix
-from src.clculate import calculate_in_rpn
+from src.calculate import calculate_in_rpn
 from src.errors import (
     InvalidOperatorError,
     DivisionByZeroError,
