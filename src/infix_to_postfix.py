@@ -11,7 +11,61 @@ from src.check_operators import check_numbers
 from src.check_operators import check_open_bracket
 
 
-def infix_to_postfix(expression):
+def tokenize(expr: str) -> list[str]:
+    tokens = []
+    i = 0
+    n = len(expr)
+
+    def peek(offset=0):
+        return expr[i+offset] if i+offset < n else ''
+
+    while i < n:
+        ch = expr[i]
+
+        if ch.isspace():
+            i += 1
+            continue
+
+        if ch.isdigit() or (ch == '.' and peek(1).isdigit()):
+            start = i
+            while i < n and expr[i].isdigit():
+                i += 1
+            if i < n and expr[i] == '.':
+                i += 1
+                while i < n and expr[i].isdigit():
+                    i += 1
+            tokens.append(expr[start:i])
+            continue
+
+        if ch == '/' and peek(1) == '/':
+            tokens.append('//')
+            i += 2
+            continue
+
+        if ch in '+-*/^%()':
+            tokens.append(ch)
+            i += 1
+            continue
+
+        raise ValueError(f"Unexpected character: {ch}")
+
+    return tokens
+
+
+def mark_unary(tokens: list[str]) -> list[str]:
+    mark_unary_result = []
+    prev = None
+    for token in tokens:
+        if token in ("+", "-") and (prev is None or prev in ('(', '+', '-', '*', '/', '//', '^', '%')):
+            if token == '-':
+                mark_unary_result.append('u-')
+        else:
+            mark_unary_result.append(token)  # '+' остаётся как есть
+        prev = token
+    return mark_unary_result
+
+
+def infix_to_postfix(mark_unary_result) -> list:
     """Переводит инфиксное выражение в постфиксное
 
     Args:
@@ -28,32 +82,21 @@ def infix_to_postfix(expression):
     """
     output = []
     stack = []
-    tokens = expression.split()
-    prev_token = None
 
-    for token in tokens:
-        if token == "-" and (
-            prev_token is None
-            or prev_token in ("(", "+", "-", "*", "/", "^", "//", "%")
-        ):
-            stack.append("u-")
+    if check_operators(mark_unary_result) == False:
+            raise NoOperatorBetweenNumbersError(f"Ошибка: отсутствует оператор между числами")
 
-        elif token == "+" and (
-            prev_token is None
-            or prev_token in ("(", "+", "-", "*", "/", "^", "//", "%")
-        ):
-            continue
+    if check_numbers(mark_unary_result) == False:
+            raise TwooperatorsStraightError(f"Oшибка: два оператора идут подряд")
 
-        elif check_operators(tokens) == False:
-            raise NoOperatorBetweenNumbersError()
+    if check_open_bracket(mark_unary_result) == False:
+            raise NumAndBracketError(f"Oшибка: число и открывающая/закрывающая скобка идут подряд")
 
-        elif check_numbers(tokens) == False:
-            raise TwooperatorsStraightError()
+    for token in mark_unary_result:
 
-        elif check_open_bracket(tokens) == False:
-            raise NumAndBracketError()
+        is_right_assoc = token in ("^", "u-")
 
-        elif token not in (
+        if token not in (
             "+",
             "-",
             "*",
@@ -65,29 +108,37 @@ def infix_to_postfix(expression):
             "//",
             "%",
         ) and not is_number(token):
-            raise InvalidOperatorError(token)
+            raise InvalidOperatorError(f"Недопустимый оператор: {token}")
 
-        elif is_number(token):
+        if is_number(token):
             output.append(token)
-
-        elif token == "(":
+            continue
+        
+        if token == "(":
             stack.append(token)
+            continue
 
-        elif token == ")":
-            # выталкиваем до открывающей скобки
+        if token == ")":
+            #выталкиваем до открывающей скобки
             while stack and stack[-1] != "(":
                 output.append(stack.pop())
+            if not stack:
+                raise InvalidOperatorError("Несовпадающие скобки")
             stack.pop()  # убираем "(" из стека
-
-        else:
-            # выталкиваем более приоритетные
-            while stack and precedence(stack[-1]) >= precedence(token):
+            continue
+        
+        while stack and stack[-1] != "(":
+            top = stack[-1]
+            if (not is_right_assoc and precedence(top) >= precedence(token) or is_right_assoc and precedence(top) > precedence(token)):
                 output.append(stack.pop())
-            stack.append(token)
-        prev_token = token
-
-    # выталкиваем оставшиеся операторы
+            else:
+                break
+        stack.append(token)
+    
     while stack:
-        output.append(stack.pop())
+        top = stack.pop()
+        if top in ("(", ")"):
+            raise InvalidOperatorError("Несовпадающие скобки")
+        output.append(top)
 
     return output

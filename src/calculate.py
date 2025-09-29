@@ -7,7 +7,7 @@ from src.errors import (
 from src.is_number import is_number
 
 
-def calculate_in_rpn(lst_rpn):
+def calculate_in_rpn(lst_rpn) -> float:
     """Считает значение выражения в обратной польской записи
 
     Args:
@@ -24,16 +24,25 @@ def calculate_in_rpn(lst_rpn):
     Returns:
         float: ответ выражения
     """
+    if not isinstance(lst_rpn, list):
+        raise ValueError("Ошибка: входные данные должны быть списком")
+    
     stack = []
     for token in lst_rpn:
+        if is_number(token):
+            stack.append(float(token))
+            continue
+        
         if token == "u-":
+            if not stack:
+                raise ValueError("Ошибка ОПН: унарный минус не имеет операнда")
             a = stack.pop()
             stack.append(-a)
+            continue
 
-        elif is_number(token):
-            stack.append(float(token))
-
-        elif token in ("+", "-", "*", "/", "^", "//", "%"):
+        if token in ("+", "-", "*", "/", "^", "//", "%"):
+            if len(stack) < 2:
+                raise ValueError(f"Ошибка ОПН: оператор {token} не имеет двух операндов")
             b = stack.pop()
             a = stack.pop()
 
@@ -48,7 +57,7 @@ def calculate_in_rpn(lst_rpn):
 
             elif token == "/":
                 if b == 0:
-                    raise DivisionByZeroError()
+                    raise DivisionByZeroError(f"Нельзя делить на ноль")
                 stack.append(a / b)
 
             elif token == "^":
@@ -60,7 +69,7 @@ def calculate_in_rpn(lst_rpn):
                         "Операция // поддерживается только для целых чисел"
                     )
                 if b == 0:
-                    raise DivisionByZeroError()
+                    raise DivisionByZeroError(f"Нельзя делить на ноль")
                 stack.append(float(int(a) // int(b)))
             elif token == "%":
                 if not (a.is_integer() and b.is_integer()):
@@ -68,9 +77,13 @@ def calculate_in_rpn(lst_rpn):
                         "Операция % поддерживается только для целых чисел"
                     )
                 if b == 0:
-                    raise DivisionByZeroError()
+                    raise DivisionByZeroError(f"Нельзя делить на ноль")
                 stack.append(float(int(a) % int(b)))
-        else:
-            raise InvalidOperatorError(token)
+            continue
+
+        raise InvalidOperatorError(f"Недопустимый оператор: {token}")
+
+    if len(stack) != 1:
+        raise ValueError("Ошибка ОПН: неверное количество операндов")
 
     return stack[0]

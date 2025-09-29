@@ -1,7 +1,7 @@
 from src.is_number import is_number
 
 
-def check_operators(token):
+def check_operators(token) -> bool:
     """Проверяет, что между двумя числами есть оператор.
 
     Args:
@@ -16,7 +16,7 @@ def check_operators(token):
     return True
 
 
-def check_numbers(token):
+def check_numbers(tokens) -> bool:
     """Проверяет, что между двумя операторами есть число.
 
     Args:
@@ -25,20 +25,21 @@ def check_numbers(token):
     Returns:
         bool: True, если между двумя операторами есть число, иначе False.
     """
-    for i in range(len(token) - 1):
-        if (
-            not is_number(token[i])
-            and not is_number(token[i + 1])
-            and token[i] not in ("(", ")")
-            and token[i + 1] not in ("(", ")")
-            and (token[i] != '+' and token[i + 1] != '+')
-            and (token[i] != '-' and token[i + 1] != '-')
-        ):
-            return False
+    ops = ("+", "-", "*", "/", "^", "//", "%")
+    for i in range(len(tokens) - 1):
+        for i in range(len(tokens) - 1):
+            left = tokens[i]
+            right = tokens[i + 1]
+            if left in ops and right in ops:
+                return False
+            # исключаем случаи скобок: ( ) и пр.
+            if left not in ops and right not in ops:
+            # оба не оператора — это handled в check_operators
+                continue
     return True
 
 
-def check_open_bracket(tokens):
+def check_open_bracket(tokens) -> bool:
     """Проверяет, что между числом и открывающей\закрывающей скобками есть оператор.
 
     Args:

@@ -1,4 +1,4 @@
-from src.infix_to_postfix import infix_to_postfix
+from src.infix_to_postfix import infix_to_postfix, tokenize, mark_unary
 from src.calculate import calculate_in_rpn
 from src.errors import (
     InvalidOperatorError,
@@ -14,23 +14,20 @@ from src.errors import (
 def main() -> None:
     expr = input("Введите инфиксное выражение: ")
     try:
-        postfix = infix_to_postfix(expr)
+        postfix = infix_to_postfix(mark_unary(tokenize(expr)))
+        print("Токены:", " ".join(tokenize(expr)))
         print("Постфиксная запись:", " ".join(postfix))
         print("Ответ:", calculate_in_rpn(postfix))
     except InvalidOperatorError as e:
-        print(f"Ошибка: недопустимый оператор: {e}")
+        print(f"{e.operator}")
     except DivisionByZeroError:
         print("Ошибка: деление на ноль")
     except PercentTypeError as e:
-        print(
-            f"Ошибка: операция % не поддерживается для типа {e.type_}, используйте только целые числа"
-        )
+        print(f"{e.type_}")
     except DoubleSlashTypeError as e:
-        print(
-            f"Ошибка: операция // не поддерживается для типа {e.type_}, используйте только целые числа"
-        )
-    except ValueError:
-        print("Ошибка: неверный формат числа")
+        print(f"{e.type_}")
+    except ValueError as e:
+        print(f"{e}")
     except NoOperatorBetweenNumbersError:
         print("Ошибка: отсутствует оператор между числами")
     except TwooperatorsStraightError:

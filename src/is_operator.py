@@ -1,4 +1,4 @@
-def is_operator(token):
+def is_operator(token) -> bool:
     """Проверяет, что токен является оператором
 
     Args:

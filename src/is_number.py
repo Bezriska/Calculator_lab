@@ -1,4 +1,4 @@
-def is_number(token):
+def is_number(token) -> bool:
     """Проверяет, что токен является числом
 
     Args:

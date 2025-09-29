@@ -1,4 +1,4 @@
-def precedence(op):
+def precedence(op) -> int:
     """Проверяет приоритет оператора
 
     Args:
@@ -13,4 +13,6 @@ def precedence(op):
         return 2
     if op == "^":
         return 3
+    if op == "u-":
+        return 4
     return 0
