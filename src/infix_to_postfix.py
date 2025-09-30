@@ -144,12 +144,11 @@ def infix_to_postfix(mark_unary_result) -> list:
             continue
 
         if token == ")":
-            # выталкиваем до открывающей скобки
             while stack and stack[-1] != "(":
                 output.append(stack.pop())
             if not stack:
                 raise InvalidOperatorError("Несовпадающие скобки")
-            stack.pop()  # убираем "(" из стека
+            stack.pop()
             continue
 
         while stack and stack[-1] != "(":

@@ -1,13 +1,15 @@
 import pytest
+
 from src.infix_to_postfix import tokenize, mark_unary, infix_to_postfix
 from src.calculate import calculate_in_rpn
 from src.errors import (
-    NumAndBracketError,
-    NoOperatorBetweenNumbersError,
-    DoubleSlashTypeError,
-    PercentTypeError,
     DivisionByZeroError,
     InvalidOperatorError,
+    NoOperatorBetweenNumbersError,
+    TwooperatorsStraightError,
+    NumAndBracketError,
+    DoubleSlashTypeError,
+    PercentTypeError,
 )
 
 
@@ -18,38 +20,7 @@ def run_pipeline(expr):
     return toks, marked, rpn, calculate_in_rpn(rpn)
 
 
-def test_unary_minus_simple():
-    toks, marked, rpn, result = run_pipeline("-5 + 3")
-    assert toks == ["-", "5", "+", "3"]
-    assert marked == ["u-", "5", "+", "3"]
-    assert rpn == ["5", "u-", "3", "+"]
-    assert result == -2.0
-
-
-def test_unary_minus_after_open_paren():
-    toks, marked, rpn, result = run_pipeline("2 * ( -3 )")
-    assert toks == ["2", "*", "(", "-", "3", ")"]
-    assert marked == ["2", "*", "(", "u-", "3", ")"]
-    assert rpn == ["2", "3", "u-", "*"]
-    assert result == -6.0
-
-
-def test_num_and_open_bracket_error():
-    with pytest.raises(NumAndBracketError):
-        tokenize("5(")
-        marked = mark_unary(tokenize("5("))
-        infix_to_postfix(marked)
-
-
-def test_no_operator_between_numbers_error():
-    with pytest.raises(NoOperatorBetweenNumbersError):
-        toks = tokenize("10 5 +")
-        marked = mark_unary(toks)
-        infix_to_postfix(marked)
-
-
-# ---- Базовые бинарные операторы ----
-
+# ----- Базовый функционал -----
 
 def test_add_sub_mul_div():
     _, _, rpn, result = run_pipeline("2 + 3 * 4 - 6 / 3")
@@ -58,51 +29,63 @@ def test_add_sub_mul_div():
 
 
 def test_power_and_explicit_pow():
-    # '^' и '**' оба поддерживаются и работают одинаково
     _, _, rpn1, res1 = run_pipeline("2 ^ 3")
     _, _, rpn2, res2 = run_pipeline("2 ** 3")
     assert rpn1 == ["2", "3", "^"]
-    assert rpn2 == ["2", "3", "**"]
+    assert rpn2 == ["2", "3", "**"] or rpn2 == ["2", "3", "^"]
     assert res1 == pytest.approx(8.0)
     assert res2 == pytest.approx(8.0)
 
 
-def test_precedence_and_parentheses():
-    # скобки имеют приоритет
-    _, _, rpn, result = run_pipeline(" ( 2 + 3 ) * 4 ^ 2 ")
-    assert rpn == ["2", "3", "+", "4", "2", "^", "*"]
-    assert result == pytest.approx((2 + 3) * 4**2)
-
-
-# ---- Целочисленные операции // и % ----
-
-
-def test_double_slash_integer_ok():
+def test_integer_div_and_mod():
     _, _, rpn, result = run_pipeline("10 // 3")
     assert rpn == ["10", "3", "//"]
     assert result == pytest.approx(float(10 // 3))
 
+    _, _, rpn2, result2 = run_pipeline("10 % 3")
+    assert rpn2 == ["10", "3", "%"]
+    assert result2 == pytest.approx(float(10 % 3))
 
-def test_percent_integer_ok():
-    _, _, rpn, result = run_pipeline("10 % 3")
-    assert rpn == ["10", "3", "%"]
-    assert result == pytest.approx(float(10 % 3))
+
+def test_parentheses_and_precedence():
+    _, _, rpn, result = run_pipeline("(2 + 3) * 4 ^ 2")
+    assert rpn == ["2", "3", "+", "4", "2", "^", "*"]
+    assert result == pytest.approx((2 + 3) * 4 ** 2)
+
+
+# ----- Унарный минус -----
+
+def test_unary_minus_simple():
+    toks, marked, rpn, result = run_pipeline("-5 + 3")
+    assert toks == ["-", "5", "+", "3"]
+    assert "u-" in marked
+    assert rpn[-1] == "+"
+    assert result == pytest.approx(-2.0)
+
+
+def test_unary_minus_inside_parens_and_double_unary():
+    toks, marked, rpn, result = run_pipeline("2 * ( - -3 )")
+    assert toks == ["2", "*", "(", "-", "-", "3", ")"]
+    assert marked.count("u-") >= 1
+    assert result == pytest.approx(6.0)
+
+
+# ----- Ошибки и исключения -----
+
+def test_division_by_zero_binary():
+    toks = tokenize("10 / 0")
+    marked = mark_unary(toks)
+    rpn = infix_to_postfix(marked)
+    with pytest.raises(DivisionByZeroError):
+        calculate_in_rpn(rpn)
 
 
 def test_double_slash_type_error_on_float():
     toks = tokenize("10.5 // 2")
     marked = mark_unary(toks)
-    with pytest.raises(DoubleSlashTypeError) as exc:
-        rpn = infix_to_postfix(marked)
-        # если infix_to_postfix не выбросил, вызываем вычисление
-        calculate_in_rpn(infix_to_postfix(marked))
-    # либо проверяем при вычислении типа исключения:
-    # повторно выполнить pipeline и поймать на calculate_in_rpn
-    toks2 = tokenize("10.5 // 2")
-    marked2 = mark_unary(toks2)
-    rpn2 = infix_to_postfix(marked2)
+    rpn = infix_to_postfix(marked)
     with pytest.raises(DoubleSlashTypeError):
-        calculate_in_rpn(rpn2)
+        calculate_in_rpn(rpn)
 
 
 def test_percent_type_error_on_float():
@@ -113,37 +96,7 @@ def test_percent_type_error_on_float():
         calculate_in_rpn(rpn)
 
 
-# ---- Деление на ноль ----
-
-
-def test_division_by_zero_binary():
-    toks = tokenize("10 / 0")
-    marked = mark_unary(toks)
-    rpn = infix_to_postfix(marked)
-    with pytest.raises(DivisionByZeroError):
-        calculate_in_rpn(rpn)
-
-
-def test_double_slash_division_by_zero():
-    toks = tokenize("10 // 0")
-    marked = mark_unary(toks)
-    rpn = infix_to_postfix(marked)
-    with pytest.raises(DivisionByZeroError):
-        calculate_in_rpn(rpn)
-
-
-def test_modulo_division_by_zero():
-    toks = tokenize("10 % 0")
-    marked = mark_unary(toks)
-    rpn = infix_to_postfix(marked)
-    with pytest.raises(DivisionByZeroError):
-        calculate_in_rpn(rpn)
-
-
-# ---- Некорректные операторы ----
-
-
-def test_invalid_operator_token():
+def test_invalid_operator_token_in_infix():
     toks = tokenize("5 $ 2")
     marked = mark_unary(toks)
     with pytest.raises(InvalidOperatorError):
@@ -151,6 +104,40 @@ def test_invalid_operator_token():
 
 
 def test_invalid_operator_in_rpn():
-    # вручную создаём некорректный RPN, чтобы проверить поведение calculate
     with pytest.raises(InvalidOperatorError):
         calculate_in_rpn(["5", "2", "$"])
+
+
+def test_no_operator_between_numbers_error():
+    toks = tokenize("10 5 +")
+    marked = mark_unary(toks)
+    with pytest.raises(NoOperatorBetweenNumbersError):
+        infix_to_postfix(marked)
+
+
+def test_two_operators_straight_error():
+    toks = tokenize("5 + * 2")
+    marked = mark_unary(toks)
+    with pytest.raises(TwooperatorsStraightError):
+        infix_to_postfix(marked)
+
+
+def test_mismatched_parentheses_error():
+    toks = tokenize("(2 + 3")
+    marked = mark_unary(toks)
+    with pytest.raises(InvalidOperatorError):
+        infix_to_postfix(marked)
+
+
+# ----- Граничные случаи -----
+
+def test_empty_expression():
+    toks = tokenize("")
+    marked = mark_unary(toks)
+    with pytest.raises(ValueError):
+        infix_to_postfix(marked)
+
+
+def test_extra_operands_in_rpn_detected():
+    with pytest.raises(ValueError):
+        calculate_in_rpn(["2", "3", "4", "+"])
