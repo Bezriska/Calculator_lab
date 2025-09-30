@@ -61,6 +61,8 @@ def calculate_in_rpn(lst_rpn) -> float:
                 stack.append(a / b)
 
             elif token == "^":
+                if a == 0 and b == 0:
+                    raise ValueError("Ошибка: 0 в степени 0 не определено")
                 stack.append(a**b)
 
             elif token == "//":
