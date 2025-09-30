@@ -139,13 +139,16 @@ def test_modulo_division_by_zero():
     with pytest.raises(DivisionByZeroError):
         calculate_in_rpn(rpn)
 
+
 # ---- Некорректные операторы ----
+
 
 def test_invalid_operator_token():
     toks = tokenize("5 $ 2")
     marked = mark_unary(toks)
     with pytest.raises(InvalidOperatorError):
         infix_to_postfix(marked)
+
 
 def test_invalid_operator_in_rpn():
     # вручную создаём некорректный RPN, чтобы проверить поведение calculate

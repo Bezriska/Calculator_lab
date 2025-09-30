@@ -9,7 +9,7 @@ def precedence(op) -> int:
     """
     if op in ("+", "-"):
         return 1
-    if op in ("*", "/", '//', '%'):
+    if op in ("*", "/", "//", "%"):
         return 2
     if op == "^":
         return 3

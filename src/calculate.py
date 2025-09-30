@@ -26,13 +26,13 @@ def calculate_in_rpn(lst_rpn) -> float:
     """
     if not isinstance(lst_rpn, list):
         raise ValueError("Ошибка: входные данные должны быть списком")
-    
+
     stack = []
     for token in lst_rpn:
         if is_number(token):
             stack.append(float(token))
             continue
-        
+
         if token == "u-":
             if not stack:
                 raise ValueError("Ошибка ОПН: унарный минус не имеет операнда")
@@ -42,7 +42,9 @@ def calculate_in_rpn(lst_rpn) -> float:
 
         if token in ("+", "-", "*", "/", "^", "//", "%"):
             if len(stack) < 2:
-                raise ValueError(f"Ошибка ОПН: оператор {token} не имеет двух операндов")
+                raise ValueError(
+                    f"Ошибка ОПН: оператор {token} не имеет двух операндов"
+                )
             b = stack.pop()
             a = stack.pop()
 

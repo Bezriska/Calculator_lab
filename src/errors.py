@@ -3,7 +3,7 @@ class CalculatorError(Exception):
 
 
 class DivisionByZeroError(CalculatorError):
-    def __init__(self, message = "Нельзя делить на ноль"):
+    def __init__(self, message="Нельзя делить на ноль"):
         super().__init__(message)
 
 
@@ -16,13 +16,17 @@ class InvalidOperatorError(CalculatorError):
 class DoubleSlashTypeError(CalculatorError):
     def __init__(self, type_):
         self.type_ = type_
-        super().__init__(f"Ошибка: операция // не поддерживается для типа {type_}, используйте только целые числа")
+        super().__init__(
+            f"Ошибка: операция // не поддерживается для типа {type_}, используйте только целые числа"
+        )
 
 
 class PercentTypeError(CalculatorError):
     def __init__(self, type_):
         self.type_ = type_
-        super().__init__(f"Ошибка: операция % не поддерживается для типа {type_}, используйте только целые числа")
+        super().__init__(
+            f"Ошибка: операция % не поддерживается для типа {type_}, используйте только целые числа"
+        )
 
 
 class NoOperatorBetweenNumbersError(CalculatorError):
@@ -36,5 +40,7 @@ class TwooperatorsStraightError(CalculatorError):
 
 
 class NumAndBracketError(CalculatorError):
-    def __init__(self, message="Ошибка: число и открывающая/закрывающая скобка идут подряд"):
+    def __init__(
+        self, message="Ошибка: число и открывающая/закрывающая скобка идут подряд"
+    ):
         super().__init__(message)
