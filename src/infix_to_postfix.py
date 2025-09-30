@@ -47,7 +47,7 @@ def tokenize(expr: str) -> list[str]:
             i += 1
             continue
 
-        raise ValueError(f"Unexpected character: {ch}")
+        raise ValueError(f"Недопустимый оператор: {ch}")
 
     return tokens
 

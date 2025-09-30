@@ -3,8 +3,8 @@ class CalculatorError(Exception):
 
 
 class DivisionByZeroError(CalculatorError):
-    def __init__(self):
-        super().__init__("Ошибка: деление на ноль")
+    def __init__(self, message = "Нельзя делить на ноль"):
+        super().__init__(message)
 
 
 class InvalidOperatorError(CalculatorError):
@@ -26,15 +26,15 @@ class PercentTypeError(CalculatorError):
 
 
 class NoOperatorBetweenNumbersError(CalculatorError):
-    def __init__(self):
-        super().__init__("Ошибка: отсутствует оператор между числами")
+    def __init__(self, message="Ошибка: отсутствует оператор между числами"):
+        super().__init__(message)
 
 
 class TwooperatorsStraightError(CalculatorError):
-    def __init__(self):
-        super().__init__("Ошибка: два оператора идут подряд")
+    def __init__(self, message="Ошибка: два оператора идут подряд"):
+        super().__init__(message)
 
 
 class NumAndBracketError(CalculatorError):
-    def __init__(self):
-        super().__init__("Ошибка: число и открывающая/закрывающая скобка идут подряд")
+    def __init__(self, message="Ошибка: число и открывающая/закрывающая скобка идут подряд"):
+        super().__init__(message)
