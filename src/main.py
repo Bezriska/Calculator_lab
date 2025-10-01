@@ -15,8 +15,8 @@ def main() -> None:
     expr = input("Введите инфиксное выражение: ")
     try:
         postfix = infix_to_postfix(mark_unary(tokenize(expr)))
-        print("Токены:", " ".join(tokenize(expr)))
-        print("Постфиксная запись:", " ".join(postfix))
+        print("Токены:", tokenize(expr))
+        print("Постфиксная запись:", postfix)
         print("Ответ:", calculate_in_rpn(postfix))
     except InvalidOperatorError as e:
         print(f"{e.operator}")

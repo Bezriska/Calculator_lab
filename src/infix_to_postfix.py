@@ -104,15 +104,21 @@ def infix_to_postfix(mark_unary_result) -> list:
     output = []
     stack = []
 
-    if check_operators(mark_unary_result) == False:
+    if not mark_unary_result:
+        raise ValueError("Пустое выражение")
+
+    if len(mark_unary_result) == 1 and is_number(mark_unary_result[0]):
+        raise ValueError("Выражение должно содержать оператор")
+
+    if not check_operators(mark_unary_result):
         raise NoOperatorBetweenNumbersError(
             f"Ошибка: отсутствует оператор между числами"
         )
 
-    if check_numbers(mark_unary_result) == False:
+    if not check_numbers(mark_unary_result):
         raise TwooperatorsStraightError(f"Oшибка: два оператора идут подряд")
 
-    if check_open_bracket(mark_unary_result) == False:
+    if not check_open_bracket(mark_unary_result):
         raise NumAndBracketError(
             f"Oшибка: число и открывающая/закрывающая скобка идут подряд"
         )
