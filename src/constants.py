@@ -1,1 +1,1 @@
-SAMPLE_CONSTANT: int = 10
+ACCEPTABLE_OPERATORS = {"+", "-", "*", "/", "//", "%", "^", "**"}

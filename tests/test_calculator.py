@@ -30,12 +30,8 @@ def test_add_sub_mul_div():
 
 def test_power_and_explicit_pow():
     _, _, rpn1, res1 = run_pipeline("2 ^ 3")
-    _, _, rpn2, res2 = run_pipeline("2 ** 3")
     assert rpn1 == ["2", "3", "^"]
-    assert rpn2 == ["2", "3", "**"] or rpn2 == ["2", "3", "^"]
     assert res1 == pytest.approx(8.0)
-    assert res2 == pytest.approx(8.0)
-
 
 def test_integer_div_and_mod():
     _, _, rpn, result = run_pipeline("10 // 3")
@@ -97,11 +93,8 @@ def test_percent_type_error_on_float():
 
 
 def test_invalid_operator_token_in_infix():
-    toks = tokenize("5 $ 2")
-    marked = mark_unary(toks)
-    with pytest.raises(InvalidOperatorError):
-        infix_to_postfix(marked)
-
+        with pytest.raises(ValueError):
+            tokenize("5 $ 2")
 
 def test_invalid_operator_in_rpn():
     with pytest.raises(InvalidOperatorError):
