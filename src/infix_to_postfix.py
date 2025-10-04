@@ -26,7 +26,7 @@ def tokenize(expr: str) -> list[str]:
     tokens = []
     i = 0
     n = len(expr)
-
+    
     def peek(offset=0):
         return expr[i + offset] if i + offset < n else ""
 
