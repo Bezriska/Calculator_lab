@@ -32,9 +32,7 @@ def check_numbers(tokens) -> bool:
             right = tokens[i + 1]
             if left in ops and right in ops:
                 return False
-            # исключаем случаи скобок: ( ) и пр.
             if left not in ops and right not in ops:
-                # оба не оператора — это handled в check_operators
                 continue
     return True
 
